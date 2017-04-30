@@ -2,14 +2,17 @@
 
 module Main where
 
-import           Control.Applicative
-import           Snap.Core
-import           Snap.Util.FileServe
-import           Snap.Http.Server
+import           Control.Monad.Reader
+import           EmonicTutor.Config (loadConfig)
+import           EmonicTutor.Types (Tutor)
 import           FindCard
+import           Snap.Core
+import           Snap.Http.Server
 
 main :: IO ()
-main = quickHttpServe site
+main = do
+  config <- loadConfig
+  quickHttpServe (runReaderT site config)
 
-site :: Snap ()
+site :: Tutor ()
 site = route [ ("mtg", findCard) ]
