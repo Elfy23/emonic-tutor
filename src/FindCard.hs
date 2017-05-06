@@ -3,11 +3,12 @@
 module FindCard where
 
 import Data.Map.Lazy
+import EmonicTutor.Types
 import Snap.Core
 
-findCard :: Snap ()
+findCard :: Tutor ()
 findCard =
   do
-    rq <- getRequest
+    rq <- liftSnap getRequest
     let params = rqParams rq
-    writeBS . head $ params ! "something"
+    liftSnap $ writeBS . head $ params ! "something"
