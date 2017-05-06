@@ -4,6 +4,7 @@ module EmonicTutor.Data.Card where
 
 import           Data.Aeson
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Text as T
 
 data Card =
   Card { name :: T.Text
