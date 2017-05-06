@@ -15,8 +15,7 @@ import           Snap.Core (Snap, MonadSnap, liftSnap, rqParams, getRequest)
 type Tutor a = ReaderT Config Snap a
 
 getParams :: ( MonadSnap m ) => m (Map BSC.ByteString [T.Text])
-getParams =
-  (fmap . fmap . fmap) (T.pack . BSC.unpack) (rqParams <$> liftSnap getRequest)
-  --   liftSnap getRequest :: Snap Request
-  --   rqParams <$> liftSnap getRequest :: Snap Params or Snap (Map BSC.ByteString [BSC,ByteString])
-  --   (fmap . fmap . fmap) (T.pack . BSC.unpack) (rqParams <$> liftSnap getRequest) ::Snap (Map BSC.ByteString [T.Text])
+getParams = convertMap . rqParams <$> liftSnap getRequest
+
+convertMap :: Map BSC.ByteString [BSC.ByteString] -> Map BSC.ByteString [T.Text]
+convertMap = fmap . fmap $ T.pack . BSC.unpack
