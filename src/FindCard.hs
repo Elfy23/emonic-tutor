@@ -5,11 +5,10 @@ module FindCard where
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson (encode)
 import qualified Data.ByteString.Char8 as BSC
-import           Data.Char (toLower, toUpper)
-import           Data.Maybe (fromMaybe)
+import           Data.Char (toUpper)
 import           Data.Monoid ((<>))
 import           EmonicTutor.Config (getCard)
-import           EmonicTutor.Data.Card (Card(..), CardName(..), Set(..))
+import           EmonicTutor.Data.Card (Card(..), cardNameToBS,  Set(..))
 import           EmonicTutor.Data.Slack (SlackMessage, ephemeralSlackMessage, inChannelSlackMessage)
 import           EmonicTutor.Types (Tutor)
 import           Snap.Core
@@ -17,21 +16,27 @@ import           System.Random (randomRIO)
 
 findCard :: Tutor ()
 findCard = do
-  liftSnap . modifyResponse $ setHeader "Content-Type" "application/json"
-  name <- (BSC.map toLower) . (fromMaybe "No Card Name Given") <$> getParam "text"
-  maybeCard <- getCard name
-  response <- case maybeCard of
-                Nothing -> pure . ephemeralSlackMessage $ "Couldn't find: " <> name
-                Just card -> cardImageResponse card Nothing
-  liftSnap . writeLBS . encode $ response
+  modifyResponse $ setHeader "Content-Type" "application/json"
+  query <- getParam "text"
+  response <- case query of
+    Nothing -> pure . ephemeralSlackMessage $ "No Card Name Given"
+    Just "" -> pure . ephemeralSlackMessage $ "No Card Name Given"
+    Just name -> do
+      maybeCard <- getCard name
+      maybe (pure . ephemeralSlackMessage $ "Couldn't find: " <> name)
+            (cardImageResponse Nothing) maybeCard
+  writeLBS . encode $ response
 
-cardImageResponse :: (MonadIO m) => Card -> Maybe Set -> m SlackMessage
-cardImageResponse (Card {cardName=(CardName name), printedSets=sets}) _ = do
-  (Set set) <- liftIO $ (sets !!) <$> randomRIO (0, length sets)
+-- The Maybe Set here is for use with user defined sets in the future
+cardImageResponse :: (MonadIO m) => Maybe Set -> Card -> m SlackMessage
+cardImageResponse _ card = do
+  let sets = printedSets card
+  randomSetIndex <- liftIO $ randomRIO (0, length sets)
+  let (Set set) = sets !! randomSetIndex
   pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <>
                                  (urlEncode . handleSpecialSetRules $ set) <>
                                  "/" <>
-                                 urlEncode name <>
+                                 (urlEncode . cardNameToBS . cardName $ card) <>
                                  ".jpg"
 
 handleSpecialSetRules :: BSC.ByteString -> BSC.ByteString
