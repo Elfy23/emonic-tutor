@@ -25,6 +25,7 @@ Executable emonic-tutor
       snap-core            >= 1     && < 2,
       snap-server          >= 1     && < 2,
       text                 >= 1     && < 2,
+      transformers         >= 0     && < 1,
       transformers-base    >= 0.3   && < 1,
       unordered-containers >= 0.2   && < 0.3
 
