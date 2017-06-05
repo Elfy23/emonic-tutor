@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module EmonicTutor.Data.Slack
   ( SlackMessage(..)
   , ephemeralSlackMessage
