@@ -2,9 +2,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module EmonicTutor.Types where
+module EmonicTutor.Types
+  ( Tutor
+  , getParams
+  ) where
 
-import           Control.Applicative
 import           Control.Monad.Reader
 import qualified Data.ByteString.Char8 as BSC
 import           Data.Map

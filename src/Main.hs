@@ -3,7 +3,7 @@
 module Main where
 
 import           Control.Monad.Reader
-import           EmonicTutor.Config (loadConfig)
+import           EmonicTutor.Config (loadConfigOrDie)
 import           EmonicTutor.Types (Tutor)
 import           FindCard
 import           Snap.Core
@@ -11,7 +11,7 @@ import           Snap.Http.Server
 
 main :: IO ()
 main = do
-  config <- loadConfig
+  config <- loadConfigOrDie
   quickHttpServe (runReaderT site config)
 
 site :: Tutor ()

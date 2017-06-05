@@ -2,13 +2,30 @@
 
 module FindCard where
 
-import Data.Map.Lazy
-import EmonicTutor.Types
-import Snap.Core
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Aeson (encode)
+import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Char (toLower)
+import           Data.Maybe (fromMaybe)
+import           Data.Monoid ((<>))
+import           EmonicTutor.Config (getCard)
+import           EmonicTutor.Data.Card (Card(..), CardName(..), Set(..))
+import           EmonicTutor.Data.Slack (SlackMessage, ephemeralSlackMessage, inChannelSlackMessage)
+import           EmonicTutor.Types (Tutor)
+import           Snap.Core
+import           System.Random (randomRIO)
 
 findCard :: Tutor ()
-findCard =
-  do
-    rq <- liftSnap getRequest
-    let params = rqParams rq
-    liftSnap $ writeBS . head $ params ! "something"
+findCard = do
+  name <- (BSC.map toLower) . (fromMaybe "No Card Name Given") <$> getParam "text"
+  maybeCard <- getCard name
+  response <- case maybeCard of
+                Nothing -> pure . ephemeralSlackMessage $ "Couldn't find: " <> name
+                Just card -> cardImageResponse card Nothing
+  liftSnap . writeBS . BSL.toStrict . encode $ response
+
+cardImageResponse :: (MonadIO m) => Card -> Maybe Set -> m SlackMessage
+cardImageResponse (Card {cardName=(CardName name), printedSets=sets}) _ = do
+  (Set set) <- liftIO $ (sets !!) <$> randomRIO (0, length sets)
+  pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <> urlEncode set <> "/" <> urlEncode name <> ".jpg"
