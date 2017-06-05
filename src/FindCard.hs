@@ -5,7 +5,7 @@ module FindCard where
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson (encode)
 import qualified Data.ByteString.Char8 as BSC
-import           Data.Char (toLower)
+import           Data.Char (toLower, toUpper)
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid ((<>))
 import           EmonicTutor.Config (getCard)
@@ -28,4 +28,16 @@ findCard = do
 cardImageResponse :: (MonadIO m) => Card -> Maybe Set -> m SlackMessage
 cardImageResponse (Card {cardName=(CardName name), printedSets=sets}) _ = do
   (Set set) <- liftIO $ (sets !!) <$> randomRIO (0, length sets)
-  pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <> urlEncode set <> "/" <> urlEncode name <> ".jpg"
+  pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <>
+                                 (urlEncode . handleSpecialSetRules $ set) <>
+                                 "/" <>
+                                 urlEncode name <>
+                                 ".jpg"
+
+handleSpecialSetRules :: BSC.ByteString -> BSC.ByteString
+handleSpecialSetRules setName =
+  let firstChar = BSC.head setName
+      rest = BSC.tail setName
+  in if firstChar == 'p' && BSC.length rest == 3
+     then firstChar `BSC.cons`  BSC.map toUpper rest
+     else setName
