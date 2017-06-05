@@ -8,11 +8,13 @@ import           EmonicTutor.Types (Tutor)
 import           FindCard
 import           Snap.Core
 import           Snap.Http.Server
+import           System.Environment (getEnv)
 
 main :: IO ()
 main = do
   config <- loadConfigOrDie
-  quickHttpServe (runReaderT site config)
+  herokuPort <- read <$> getEnv "PORT"
+  httpServe (setPort herokuPort defaultConfig) (runReaderT site config)
 
 site :: Tutor ()
 site = route [ ("mtg", findCard) ]
