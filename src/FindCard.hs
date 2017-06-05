@@ -8,7 +8,7 @@ import qualified Data.ByteString.Char8 as BSC
 import           Data.Char (toUpper)
 import           Data.Monoid ((<>))
 import           EmonicTutor.Config (getCard)
-import           EmonicTutor.Data.Card (Card(..), cardNameToBS,  Set(..))
+import           EmonicTutor.Data.Card (Card(..), Set(..), cardNameByteString)
 import           EmonicTutor.Data.Slack (SlackMessage, ephemeralSlackMessage, inChannelSlackMessage)
 import           EmonicTutor.Types (Tutor)
 import           Snap.Core
@@ -32,11 +32,11 @@ cardImageResponse :: (MonadIO m) => Maybe Set -> Card -> m SlackMessage
 cardImageResponse _ card = do
   let sets = printedSets card
   randomSetIndex <- liftIO $ randomRIO (0, length sets)
-  let (Set set) = sets !! randomSetIndex
+  let set = sets !! randomSetIndex
   pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <>
-                                 (urlEncode . handleSpecialSetRules $ set) <>
+                                 (urlEncode . handleSpecialSetRules . setByteString $ set) <>
                                  "/" <>
-                                 (urlEncode . cardNameToBS . cardName $ card) <>
+                                 (urlEncode . cardNameByteString . cardName $ card) <>
                                  ".jpg"
 
 handleSpecialSetRules :: BSC.ByteString -> BSC.ByteString

@@ -5,7 +5,6 @@ module EmonicTutor.Data.Card
   ( Card(..)
   , CardName(..)
   , Set(..)
-  , cardNameToBS
   ) where
 
 import           Data.Aeson
@@ -25,7 +24,8 @@ instance FromJSON Card where
 
   parseJSON _ = fail "Failed to parse card"
 
-newtype CardName = CardName BSC.ByteString
+-- record syntax is used here for a shortcut for unwraping this value
+newtype CardName = CardName { cardNameByteString :: BSC.ByteString }
   deriving(Show, Eq)
 
 instance FromJSON CardName where
@@ -33,10 +33,8 @@ instance FromJSON CardName where
 
   parseJSON _ = fail "Failed to parse CardName"
 
-cardNameToBS :: CardName -> BSC.ByteString
-cardNameToBS (CardName name) = name
-
-newtype Set = Set BSC.ByteString
+-- record syntax is used here for a shortcut for unwraping this value
+newtype Set = Set { setByteString :: BSC.ByteString }
   deriving(Show, Eq)
 
 instance FromJSON Set where
