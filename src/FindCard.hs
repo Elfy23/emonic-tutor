@@ -5,7 +5,6 @@ module FindCard where
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson (encode)
 import qualified Data.ByteString.Char8 as BSC
-import qualified Data.ByteString.Lazy as BSL
 import           Data.Char (toLower)
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid ((<>))
@@ -18,12 +17,13 @@ import           System.Random (randomRIO)
 
 findCard :: Tutor ()
 findCard = do
+  liftSnap . modifyResponse $ setHeader "Content-Type" "application/json"
   name <- (BSC.map toLower) . (fromMaybe "No Card Name Given") <$> getParam "text"
   maybeCard <- getCard name
   response <- case maybeCard of
                 Nothing -> pure . ephemeralSlackMessage $ "Couldn't find: " <> name
                 Just card -> cardImageResponse card Nothing
-  liftSnap . writeBS . BSL.toStrict . encode $ response
+  liftSnap . writeLBS . encode $ response
 
 cardImageResponse :: (MonadIO m) => Card -> Maybe Set -> m SlackMessage
 cardImageResponse (Card {cardName=(CardName name), printedSets=sets}) _ = do
