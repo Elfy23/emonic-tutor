@@ -3,6 +3,7 @@
 module Main where
 
 import           Control.Monad.Reader
+import           Control.Applicative ((<|>))
 import           EmonicTutor.Config (loadConfigOrDie)
 import           EmonicTutor.Types (Tutor)
 import           EmonicTutor.FindCard
@@ -17,4 +18,6 @@ main = do
   httpServe (setPort herokuPort defaultConfig) (runReaderT site config)
 
 site :: Tutor ()
-site = route [ ("mtg", findCard) ]
+site =
+  ifTop (writeBS "This page intentionally left blank.") <|>
+  route [ ("mtg", findCard) ]
