@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module FindCard where
+module EmonicTutor.FindCard where
 
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson (encode)

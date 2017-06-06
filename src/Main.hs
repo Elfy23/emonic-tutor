@@ -5,7 +5,7 @@ module Main where
 import           Control.Monad.Reader
 import           EmonicTutor.Config (loadConfigOrDie)
 import           EmonicTutor.Types (Tutor)
-import           FindCard
+import           EmonicTutor.FindCard
 import           Snap.Core
 import           Snap.Http.Server
 import           System.Environment (getEnv)

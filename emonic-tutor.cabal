@@ -31,6 +31,8 @@ Executable emonic-tutor
 
   ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
   other-modules:
-    EmonicTutor.Config,
+    EmonicTutor.Config
     EmonicTutor.Data.Card
+    EmonicTutor.Data.Slack
+    EmonicTutor.FindCard
     EmonicTutor.Types
