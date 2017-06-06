@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module EmonicTutor.FindCard where
+module EmonicTutor.SearchCard
+  ( searchCard
+  ) where
 
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Aeson (encode)
@@ -8,14 +10,14 @@ import qualified Data.ByteString.Char8 as BSC
 import           Data.Char (toUpper)
 import           Data.Monoid ((<>))
 import           EmonicTutor.Config (getCard)
-import           EmonicTutor.Data.Card (Card(..), Set(..), cardNameByteString)
+import           EmonicTutor.Data.Card (Card(..), CardName(..), Set(..), cardNameByteString)
 import           EmonicTutor.Data.Slack (SlackMessage, ephemeralSlackMessage, inChannelSlackMessage)
 import           EmonicTutor.Types (Tutor)
 import           Snap.Core
 import           System.Random (randomRIO)
 
-findCard :: Tutor ()
-findCard = do
+searchCard :: Tutor ()
+searchCard = do
   modifyResponse $ setHeader "Content-Type" "application/json"
   query <- getParam "text"
   response <- case query of

@@ -34,5 +34,5 @@ Executable emonic-tutor
     EmonicTutor.Config
     EmonicTutor.Data.Card
     EmonicTutor.Data.Slack
-    EmonicTutor.FindCard
+    EmonicTutor.SearchCard
     EmonicTutor.Types

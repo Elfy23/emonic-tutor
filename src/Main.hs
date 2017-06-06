@@ -6,7 +6,7 @@ import           Control.Monad.Reader
 import           Control.Applicative ((<|>))
 import           EmonicTutor.Config (loadConfigOrDie)
 import           EmonicTutor.Types (Tutor)
-import           EmonicTutor.FindCard
+import           EmonicTutor.SearchCard
 import           Snap.Core
 import           Snap.Http.Server
 import           System.Environment (getEnv)
@@ -20,4 +20,4 @@ main = do
 site :: Tutor ()
 site =
   ifTop (writeBS "This page intentionally left blank.") <|>
-  route [ ("mtg", findCard) ]
+  route [ ("mtg", searchCard) ]
