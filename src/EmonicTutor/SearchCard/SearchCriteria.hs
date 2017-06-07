@@ -1,4 +1,5 @@
 {-#LANGUAGE TemplateHaskell#-}
+{-#LANGUAGE OverloadedStrings#-}
 module EmonicTutor.SearchCard.SearchCriteria
   ( SearchCriteria(..)
   , getSearchParams
@@ -26,10 +27,10 @@ makeLenses ''SearchCriteria
 emptySearch :: SearchCriteria
 emptySearch = SearchCriteria Nothing Nothing
 
-getSearchParams :: Tutor (Either String SearchCriteria)
+getSearchParams :: Tutor (Either BSC.ByteString SearchCriteria)
 getSearchParams = do
   text <- fromMaybe "" <$> getParam "text"
-  pure . (first show) $ runParser parseSearchCriteria emptySearch "" text
+  pure . (first $ BSC.pack . show) $ runParser parseSearchCriteria emptySearch "" text
 
 parseSearchCriteria :: Parser SearchCriteria
 parseSearchCriteria = do
@@ -37,21 +38,21 @@ parseSearchCriteria = do
   getState
 
 parseOption :: Parser ()
-parseOption =
-      parseSet
-  <|> parseCardName
+parseOption = choice [ parseCardName 
+                     , parseSet
+                     ]
 
 parseCardName :: Parser ()
-parseCardName = do
+parseCardName = try $ do
   spaces
-  _ <-string "--set"
+  _ <-string "--name"
   spaces
   cardName <- CardName <$> parseToken
   modifyState (set searchName (Just cardName))
 
 
 parseSet :: Parser ()
-parseSet = do
+parseSet = try $ do
   spaces
   _ <- string "--set"
   spaces
@@ -61,7 +62,7 @@ parseSet = do
 parseToken :: Parser BSC.ByteString
 parseToken =
   BSC.pack <$> (   between ((:[]) <$> char '\"')
-                           (many $ noneOf ['\"'])
                            ((:[]) <$> char '\"')
+                           (many $ noneOf ['\"'])
                <|> many alphaNum
                )

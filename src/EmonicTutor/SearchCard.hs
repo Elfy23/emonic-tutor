@@ -12,6 +12,7 @@ import           Data.Monoid ((<>))
 import           EmonicTutor.Config (getCard)
 import           EmonicTutor.Data.Card (Card(..), CardName(..), Set(..), cardNameByteString)
 import           EmonicTutor.Data.Slack (SlackMessage, ephemeralSlackMessage, inChannelSlackMessage)
+import           EmonicTutor.SearchCard.SearchCriteria (getSearchParams, SearchCriteria(..)) 
 import           EmonicTutor.Types (Tutor)
 import           Snap.Core
 import           System.Random (randomRIO)
@@ -19,19 +20,21 @@ import           System.Random (randomRIO)
 searchCard :: Tutor ()
 searchCard = do
   modifyResponse $ setHeader "Content-Type" "application/json"
-  query <- getParam "text"
+  query <- getSearchParams
   response <- case query of
-    Nothing -> pure . ephemeralSlackMessage $ "No Card Name Given"
-    Just "" -> pure . ephemeralSlackMessage $ "No Card Name Given"
-    Just name -> do
-      maybeCard <- getCard name
-      maybe (pure . ephemeralSlackMessage $ "Couldn't find: " <> name)
-            (cardImageResponse Nothing) maybeCard
+    Left errMsg -> pure . ephemeralSlackMessage $ errMsg
+    Right searchCriteria -> 
+      case _searchName searchCriteria of
+        Nothing -> pure . ephemeralSlackMessage $ "No Card Name Given"
+        Just cardName -> do
+         maybeCard <- getCard cardName 
+         case maybeCard of
+          Nothing -> pure . ephemeralSlackMessage $ "No Card Found"
+          Just card -> cardImageResponse (_searchSet searchCriteria) card
   writeLBS . encode $ response
 
--- The Maybe Set here is for use with user defined sets in the future
 cardImageResponse :: (MonadIO m) => Maybe Set -> Card -> m SlackMessage
-cardImageResponse _ card = do
+cardImageResponse Nothing card = do
   let sets = printedSets card
   randomSetIndex <- liftIO $ randomRIO (0, length sets)
   let set = sets !! randomSetIndex
@@ -40,6 +43,14 @@ cardImageResponse _ card = do
                                  "/" <>
                                  (urlEncode . cardNameByteString . cardName $ card) <>
                                  ".jpg"
+cardImageResponse (Just set) card =
+  if elem set $ printedSets card
+  then pure . inChannelSlackMessage $ "https://magidex.com/extstatic/card/" <>
+                                 (urlEncode . handleSpecialSetRules . setByteString $ set) <>
+                                 "/" <>
+                                 (urlEncode . cardNameByteString . cardName $ card) <>
+                                 ".jpg"
+  else pure . ephemeralSlackMessage $ "Invalid set given."
 
 handleSpecialSetRules :: BSC.ByteString -> BSC.ByteString
 handleSpecialSetRules setName =

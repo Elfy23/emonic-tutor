@@ -16,7 +16,7 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as M
 import qualified Data.Text as T
-import           EmonicTutor.Data.Card (Card)
+import           EmonicTutor.Data.Card (Card, CardName(..))
 import           System.Exit (die)
 
 data Config = Config
@@ -28,8 +28,8 @@ type Cards = M.Map BSC.ByteString Card
 getCards :: ( MonadReader Config m ) => m Cards
 getCards = asks cards
 
-getCard :: ( MonadReader Config m ) => BSC.ByteString -> m (Maybe Card)
-getCard name = M.lookup name <$> getCards
+getCard :: ( MonadReader Config m ) => CardName -> m (Maybe Card)
+getCard (CardName name) = M.lookup name <$> getCards
 
 loadConfigOrDie :: IO Config
 loadConfigOrDie =
